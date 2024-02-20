@@ -32,20 +32,6 @@ struct channel_node* add_channel_node(struct channel_node** channel_slots, int m
 struct channel_node* search_channel_node(struct channel_node** channel_slots, int minor, int channel_id);
 int free_linked_lst(struct channel_node* head);
 
-// Help structs definition
-struct channel_node {
-    int minor;
-    int channel_id; 
-    char msg_buffer[BUFFER_SIZE]; 
-    int msg_size;
-    struct channel_node* next;
-} ;
-
-struct file_private_info {
-    unsigned int channel_id;
-    int minor;
-} ;
-
 // Global array of channel node pointers
 channel_node* channel_slots[MAX_MINORS] = {NULL};
 
@@ -70,6 +56,13 @@ static int device_open(struct inode *inode, struct file *file){
   file->private_data = priv_data;
 
   return 0; // Success
+}
+
+static int device_release(struct inode* inode, struct file*  file)
+{
+    /* printk("%s: Initiating 'device_open'.\n", DEVICE_FILE_NAME); */
+    kfree(file -> private_data);
+    return 0; // Success
 }
 
 //---------------------------------------------------------------
@@ -139,9 +132,9 @@ static ssize_t device_write(struct file* file, const char __user* buffer, size_t
   }
 
   // search for or create the corresponding channel node
-  node = search_channel_node_channel_node(channel_slots, priv_data->minor, channel_id);
+  node = (channel_node*) search_channel_node(channel_slots, priv_data->minor, channel_id);
   if (node == NULL) {
-    node = add_channel_node(channel_slots, priv_data->minor, channel_id);
+    node = (channel_node*) add_channel_node(channel_slots, priv_data->minor, channel_id);
     if (node == NULL) {
       return -ENOMEM; // Failed to add node
     }
@@ -194,7 +187,7 @@ static long device_ioctl(struct file* file, unsigned int ioctl_command_id, unsig
 // This structure will hold the functions to be called
 // when a process does something to the device we created
 struct file_operations Fops = {
-  .owner	  = THIS_MODULE, 
+  .owner	        = THIS_MODULE, 
   .read           = device_read,
   .write          = device_write,
   .open           = device_open,

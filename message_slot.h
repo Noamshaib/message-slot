@@ -17,4 +17,19 @@
 
 #define DEVICE_RANGE_NAME "message_slot"
 
+
+// Help structs definition
+typedef struct channel_node {
+    int minor;
+    int channel_id; 
+    char msg_buffer[BUFFER_SIZE]; 
+    int msg_size;
+    struct channel_node* next;
+} channel_node;
+
+typedef struct file_private_info {
+    unsigned int channel_id;
+    int minor;
+} file_private_info;
+
 #endif
