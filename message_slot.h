@@ -15,4 +15,6 @@
 
 #define BUFFER_SIZE 128 // Assuming max message size is 128 bytes
 
+#define DEVICE_RANGE_NAME "message_slot"
+
 #endif
