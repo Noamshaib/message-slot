@@ -123,13 +123,18 @@ static ssize_t device_write(struct file* file, const char __user* buffer, size_t
   priv_data = (struct file_private_info*)file->private_data;
   channel_id = priv_data->channel_id;
 
-  if (buffer == NULL || length == 0 || length > BUFFER_SIZE) {
-    return -EINVAL; // Invalid request
-  }
-
   if (channel_id == 0) {
     return -EINVAL; // Invalid channel ID
   }
+
+  if (buffer == NULL) {
+    return -EINVAL; // Null buffer is invalid
+  }
+
+  if (length <= 0 || length > BUFFER_SIZE) {
+    return -EMSGSIZE; // Invalid message size
+  }
+
 
   // search for or create the corresponding channel node
   node = (channel_node*) search_channel_node(channel_slots, priv_data->minor, channel_id);
